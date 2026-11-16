@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Simulateur de four électrique — Gradateur à trains d'ondes</title>
+<style>
+:root{font-family:system-ui,Segoe UI,Arial,sans-serif;color:#e7edf7;background:#0b1220}*{box-sizing:border-box}body{margin:0;padding:24px}.wrap{max-width:1280px;margin:auto}h1{font-size:clamp(23px,3vw,34px);margin:0 0 5px}h2{font-size:17px;margin:0 0 14px}p{margin:0}.subtitle{color:#a9b7cb;margin-bottom:20px}.layout{display:grid;grid-template-columns:330px 1fr;gap:16px}.panel{background:#141f31;border:1px solid #30415c;border-radius:14px;padding:19px;margin-bottom:16px}.control{margin:12px 0}.control label{display:flex;justify-content:space-between;gap:10px;font-size:13px;margin-bottom:6px;color:#cdd9e9}.control input,.control select{width:100%;background:#0b1424;color:#fff;border:1px solid #465c79;border-radius:7px;padding:8px;font:inherit}.control input:focus,.control select:focus{outline:2px solid #5c9dea}.hint{color:#94a6c0;font-size:12px;line-height:1.5}.buttons{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}button{background:#3479d3;color:white;border:0;border-radius:8px;padding:11px 14px;font-weight:650;cursor:pointer}button.secondary{background:#33435d}button:hover{filter:brightness(1.12)}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:16px}.stat{padding:13px;border:1px solid #30415c;background:#141f31;border-radius:12px}.stat .lab{color:#9caeca;font-size:12px}.stat strong{display:block;font-size:24px;margin-top:4px}.tag{font-size:12px;background:#273854;color:#bcddff;padding:5px 9px;border-radius:20px;display:inline-block}.legend{font-size:12px;color:#aabdce;margin:8px 0 0;display:flex;gap:15px;flex-wrap:wrap}.sw{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px}.chart{width:100%;height:260px;display:block}.chart.short{height:190px}.scope-controls{display:grid;grid-template-columns:repeat(4,minmax(125px,1fr));gap:10px;align-items:end}.scope-controls .control{margin:5px 0}.scope-screen{border:1px solid #3b516b;border-radius:8px;overflow:hidden}.scope-screen .chart{height:235px}.scope-meta{display:flex;justify-content:space-between;color:#9fb4d2;font-size:12px;margin:9px 0}.mini-controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:9px 0}.mini-controls label{font-size:13px;color:#cbd8ed}@media(max-width:800px){.scope-controls{grid-template-columns:repeat(2,minmax(0,1fr))}}.rowTitle{display:flex;align-items:center;justify-content:space-between;gap:8px}.footer{margin-top:12px;color:#9daec6;font-size:12px;line-height:1.65}.hidden{display:none}.formula{padding:10px 12px;background:#0b1424;border-radius:8px;color:#c6d7ef;font-size:12px;line-height:1.6}.mono{font-variant-numeric:tabular-nums}@media(max-width:950px){.layout{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:480px){body{padding:12px}.stats{gap:6px}.stat strong{font-size:20px}}
+
+.euro{background:linear-gradient(135deg,#4b5360,#252b36);padding:18px;border:3px solid #69717b;border-radius:14px;max-width:330px;margin:auto;box-shadow:0 12px 22px #0005}.eurohead{display:flex;justify-content:space-between;align-items:center;font-weight:750;font-size:15px;color:#e9edf3;margin-bottom:9px}.euroscreen{background:#090f0a;border:3px inset #505b50;border-radius:5px;padding:10px 12px;color:#a5ff7b;min-height:140px}.leds{display:flex;gap:9px;font-size:10px;color:#75866c;margin-bottom:7px}.leds .active{color:#b6ff67;text-shadow:0 0 9px #b6ff67}.eurolabel{font-size:10px;color:#88ac80;display:flex;justify-content:space-between}.eurovalue{font:700 39px Consolas,monospace;letter-spacing:3px;text-align:right;line-height:1.15;text-shadow:0 0 9px #55e13f}.eurosp{font:700 22px Consolas,monospace;text-align:right;color:#a9ff78}.eurokeys{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:13px}.eurokeys button{background:#303845;border:1px solid #8c97a7;border-radius:5px;padding:9px 0;color:#e7efff;font-size:18px}.eurokeys button:focus-visible{outline:2px solid #8bdb92}.statusnote{margin-top:10px;font-size:11px;color:#bcc9d7}.export{background:#226e67}.plotTitle{display:flex;justify-content:space-between;align-items:center;gap:8px}.plotTitle h2{margin:0 0 14px}
+
+.bench{display:grid;grid-template-columns:1fr;gap:14px}.schematic{background:#0a1627;border:1px solid #39536f;border-radius:12px;padding:12px;overflow:auto}.schematic svg{width:100%;min-width:540px;height:auto;display:block}.probe-pin{cursor:pointer;outline:none;pointer-events:bounding-box}.probe-pin circle{stroke:#d1e5fb;stroke-width:2}.probe-pin:hover circle,.probe-pin:focus circle{stroke:#fff;stroke-width:4}.probe-pin text{fill:#e2edff;font-size:12px}.scope-four{background:#283442;border:6px solid #5b6873;border-radius:16px;padding:12px;box-shadow:0 9px 24px #0005}.scope-top{display:flex;justify-content:space-between;gap:10px;align-items:center;font-weight:800;letter-spacing:.05em}.tek-screen{border:4px solid #0a1119;border-radius:8px;overflow:hidden;margin:8px 0}.tek-screen canvas{display:block;width:100%;height:340px;touch-action:none;cursor:crosshair}.four-controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}.channel{background:#0f1929;border:1px solid #3b506e;border-radius:9px;padding:10px;min-width:0}.channel h3{font-size:13px;margin:0 0 8px}.channel select,.channel input,.meter-ctrl select{width:100%;background:#091321;color:#e7edf7;border:1px solid #506581;border-radius:6px;padding:6px}.channel label{display:block;font-size:11px;color:#b6c9db;margin-top:7px}.channel button{padding:7px 8px;width:100%;margin-top:9px;font-size:12px}.channel.armed{outline:2px solid #f7d46a}.scope-footer{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin-top:12px}.scope-footer .control{margin:0;min-width:130px}.scope-footer button{padding:9px}.meter{background:#d9ae3e;border:7px solid #b68b26;border-radius:20px;padding:12px;color:#182328;max-width:690px;margin:auto;box-shadow:0 10px 22px #0006}.meter-title{font-weight:900;letter-spacing:.04em;display:flex;justify-content:space-between}.meter-display{background:#a8c4b4;border:4px inset #78938a;border-radius:6px;padding:12px;margin:9px 0;color:#112d27;font-family:Consolas,monospace}.meter-readings{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.meter-readings div{border-bottom:1px solid #588075;padding-bottom:5px}.meter-readings small{display:block;font-size:10px}.meter-readings strong{font-size:19px}.meter-ctrl{display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12px}.meter-ctrl label{display:block;margin:6px 0}.meter-ctrl select{background:#1d2a30}.bench-note{font-size:12px;line-height:1.55;color:#b6c9df}.pill{display:inline-block;background:#293b53;padding:5px 8px;border-radius:8px;font-size:12px}.scope-state{font-size:12px;color:#c5d5e7}.channel-swatch{width:10px;height:10px;display:inline-block;border-radius:50%;margin-right:5px}@media(max-width:800px){.four-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.tek-screen canvas{height:280px}}@media(max-width:480px){.four-controls{grid-template-columns:1fr}.meter-readings{grid-template-columns:repeat(2,1fr)}}
+
+.instrument-tray{display:flex;gap:10px;flex-wrap:wrap;padding:12px;background:#0a1726;border:1px solid #41637c;border-radius:9px;margin:12px 0}.instrument-tray button{font-size:12px;padding:9px 12px}.instrument-tray button.selected-tool{outline:3px solid #f6d166;background:#586347}.wire-status{border:1px solid #49607c;background:#14283a;border-radius:8px;padding:11px;margin:10px 0;font-size:13px}.wiring-led{width:11px;height:11px;border-radius:50%;display:inline-block;background:#9c4545;margin-right:6px}.wiring-led.good{background:#3dbd81}.meter-config{margin:12px 0;padding:12px;border-radius:9px;background:#f1d58c;color:#2e281b}.meter-config label{display:block;font-size:12px;font-weight:650;margin:8px 0}.meter-config select{display:block;width:100%;padding:7px;border:1px solid #a68b49;border-radius:5px;background:#fff;color:#272727}.meter-config .config-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.meter-config button{margin-top:10px;background:#23344a}.meter-config .status{font-size:12px;margin-top:8px;font-weight:650}.schematic .probe-pin text{fill:#233c55;font-weight:650}.schematic .meter-port{cursor:pointer}.schematic .meter-port circle{stroke:#fff;stroke-width:2}.schematic .meter-port:hover circle{stroke:#ffff99;stroke-width:5}.instrument-help{font-size:12px;color:#d9e8f6;line-height:1.5}.meter-unready{opacity:.5}.meter-tab{background:#263b56;margin:2px;padding:6px 12px;font-size:12px}.meter-tab.active{background:#3875aa}.meter-screen-status{font:12px Consolas,monospace;padding:5px;color:#183e2b}.warn{color:#f5b9a4}.status-good{color:#b1f4b8}@media(max-width:700px){.meter-config .config-grid{grid-template-columns:1fr 1fr}}
+</style></head>
+<body><div class="wrap"><h1>Four électrique monophasé — Banc de TP V14</h1><p class="subtitle">230 V · 50 Hz · résistance chauffante · gradateur à trains d'ondes entières · régulation TOR / PI</p>
+<div class="layout"><aside>
+<section class="panel"><h2>Régulateur — façade type 3216</h2><div class="euro"><div class="eurohead"><span>EUROTHERM</span><span>3216</span></div><div class="euroscreen"><div class="leds"><span id="op1">OP1</span><span>OP2</span><span>OP4</span><span>SPX</span><span id="alm">ALM</span></div><div class="eurolabel"><span>PV</span><span>°C</span></div><div id="euroPV" class="eurovalue">20.0</div><div class="eurolabel"><span id="euroParam">SP</span><span>°C</span></div><div id="euroSP" class="eurosp">180.0</div></div><div class="eurokeys"><button id="ePage" aria-label="Page" title="Page : retour à la consigne">▤</button><button id="eScroll" aria-label="Scroll" title="Scroll : visualiser sortie, bande proportionnelle, intégrale">↻</button><button id="eDown" aria-label="Diminuer">▼</button><button id="eUp" aria-label="Augmenter">▲</button></div><div class="statusnote">Façade pédagogique inspirée du 3216 : ▲/▼ règlent la valeur affichée ; ↻ parcourt SP, OP, PB et TI ; ▤ revient à SP. OP1 reflète la conduction du gradateur.</div></div></section><section class="panel"><h2>Commande et consigne</h2><div class="control"><label for="mode">Mode de régulation</label><select id="mode"><option value="tor">Tout ou rien (TOR)</option><option value="pi">Proportionnel intégral (PI)</option></select></div><div class="control"><label for="setpoint">Consigne de température (°C)</label><input id="setpoint" type="number" min="20" max="500" value="180" step="5"></div><div class="control"><label for="window">Fenêtre du train d'ondes (s)</label><input id="window" type="number" min="0.02" max="20" step="0.02" value="2"></div><div id="torCtrls"><div class="control"><label for="hyst">Hystérésis totale (°C)</label><input id="hyst" type="number" min="0" max="30" step="0.5" value="2"></div></div><div id="piCtrls" class="hidden"><div class="control"><label for="pb">Bande proportionnelle Pb (°C)</label><input id="pb" type="number" min="0.1" max="500" step="1" value="60"></div><div class="control"><label for="ti">Temps intégral Ti (s)</label><input id="ti" type="number" min="1" max="10000" step="10" value="500"></div></div><div class="buttons"><button id="run">▶ Démarrer</button><button id="reset" class="secondary">↺ Réinitialiser</button><button id="export" class="export">↓ Export CSV</button></div><span id="state" class="tag">Prêt</span></section>
+<section class="panel" id="didacticPresets"><h2>Essais guidés — régulation TOR et dépassement</h2><p class="hint">Applique un scénario, réinitialise le temps puis démarre. Comparer les pics réels et non seulement l’échelle du graphique.</p><div class="buttons" style="display:flex;flex-wrap:wrap;gap:7px;margin:12px 0"><button id="presetTorSoft" class="secondary">TOR : réponse modérée</button><button id="presetTor">TOR : dépassement marqué</button><button id="presetTorStrong" class="secondary">TOR : dépassement très marqué</button><button id="presetPiSoft" class="secondary">PI doux</button><button id="presetPiOvershoot" class="secondary">PI agressif</button></div><p id="presetExplanation" class="hint">En TOR, compare trois essais à consigne identique : hystérésis, inertie des résistances et temps de réponse du capteur. Les valeurs sont des hypothèses pour l’apprentissage.</p><div class="wire-status" id="peakMetrics">Premier dépassement : en attente de la consigne.</div><details style="margin-top:10px"><summary>Pourquoi le four dépasse-t-il la consigne ?</summary><p class="hint">Même si le gradateur réduit la puissance, les éléments chauffants restent plus chauds que l’enceinte et y transfèrent leur énergie. Un capteur lent retarde la correction. En TOR, le seuil haut de coupure est SP + hystérésis/2, le seuil bas de remise en chauffe est SP − hystérésis/2, et le capteur mesure avec retard. En PI, une bande proportionnelle plus faible et un temps d’intégration plus court rendent la commande plus agressive ; ils peuvent augmenter le dépassement, mais aussi les oscillations. Les résultats dépendent du modèle et des conditions de fonctionnement.</p></details></section>
+<section class="panel"><h2>Paramètres physiques du four</h2><div class="control"><label for="power">Puissance nominale (W)</label><input id="power" type="number" min="100" max="20000" step="100" value="3000"></div><div class="control"><label for="capacity">Capacité thermique (J/K)</label><input id="capacity" type="number" min="1000" max="1000000" step="1000" value="18000"></div><div class="control"><label for="heaterCapacity">Capacité thermique des éléments chauffants (J/K)</label><input id="heaterCapacity" type="number" min="500" max="100000" step="500" value="7000"></div><div class="control"><label for="transfer">Échange thermique éléments / enceinte (W/K)</label><input id="transfer" type="number" min="1" max="300" step="1" value="24"></div><div class="control"><label for="loss">Coefficient de pertes (W/K)</label><input id="loss" type="number" min="0" max="300" step="0.5" value="10"></div><div class="control"><label for="ambient">Température ambiante (°C)</label><input id="ambient" type="number" min="-20" max="80" step="1" value="20"></div><div class="control"><label for="sensor">Constante de temps du capteur (s)</label><input id="sensor" type="number" min="0" max="600" step="1" value="12"></div><div class="control"><label for="speed">Accélération du temps simulé</label><select id="speed"><option value="20">× 20</option><option value="60">× 60</option><option value="120" selected>× 120</option><option value="300">× 300</option><option value="600">× 600</option></select></div><p class="hint">Le modèle à deux inerties thermiques permet un dépassement transitoire initial distinct des oscillations de régime établi. Les réglages sont des hypothèses pédagogiques, pas les paramètres identifiés d'un four réel. Modifier les paramètres physiques pendant la marche modifie le modèle immédiatement.</p></section>
+</aside><main>
+<div class="stats"><div class="stat"><div class="lab">Température du four</div><strong id="temp" class="mono">20,0 °C</strong></div><div class="stat"><div class="lab">Température mesurée</div><strong id="pv" class="mono">20,0 °C</strong></div><div class="stat"><div class="lab">Puissance demandée</div><strong id="demand" class="mono">100 %</strong></div><div class="stat"><div class="lab">Temps simulé</div><strong id="time" class="mono">0,0 min</strong></div></div>
+<section class="panel"><div class="rowTitle"><h2>Évolution des températures</h2><span class="tag" id="historyInfo">Historique complet • compression automatique</span></div><div class="mini-controls"><label for="tempScale">Échelle verticale</label><select id="tempScale" style="max-width:170px"><option value="auto">Automatique</option><option value="20">20 °C (zoom)</option><option value="40">40 °C</option><option value="80">80 °C</option><option value="160">160 °C</option><option value="320">320 °C</option><option value="600">600 °C</option></select><label for="tempCenter">Centre (°C)</label><input id="tempCenter" type="number" value="180" step="5" style="width:90px;background:#0b1424;color:#fff;border:1px solid #465c79;border-radius:6px;padding:6px"></div><button id="zoomFirstOvershoot" class="secondary" style="margin:8px 0">Voir le premier dépassement (zoom)</button><span id="firstOvershootValue" class="tag" style="margin-left:8px">Premier pic : en attente</span><p class="hint">Zoom souris : encadre une zone sur la courbe ; double-clic pour revenir à la vue complète.</p><canvas id="tempChart" class="chart" style="cursor:crosshair;touch-action:none"></canvas><div class="legend"><span><i class="sw" style="background:#f59e74"></i>Four</span><span><i class="sw" style="background:#68c9ff"></i>Capteur</span><span><i class="sw" style="background:#8bdb92"></i>Consigne</span></div></section>
+<section class="panel"><h2>Puissance réellement appliquée (moyenne par fenêtre)</h2><p class="hint">Zoom souris : encadre la zone souhaitée ; double-clic pour réinitialiser.</p><canvas id="powerChart" class="chart short" style="cursor:crosshair;touch-action:none"></canvas><div class="legend"><span><i class="sw" style="background:#d0a7ff"></i>Puissance moyenne de chauffe (% de Pn)</span></div></section>
+<section class="panel"><div class="rowTitle"><h2>Énergie consommée et bilan de chauffe</h2><span class="tag">Énergie active cumulée</span></div><canvas id="energyChart" class="chart short"></canvas><div class="legend"><span><i class="sw" style="background:#f0d06a"></i>Énergie active (Wh)</span></div><div class="stats" style="margin-top:12px"><div class="stat"><span class="lab">Énergie totale</span><strong id="energyTotal">0 Wh</strong></div><div class="stat"><span class="lab">Énergie montée initiale</span><strong id="energyHeatup">—</strong></div><div class="stat"><span class="lab">Puissance moyenne depuis le départ</span><strong id="powerGlobal">—</strong></div><div class="stat"><span class="lab">Puissance moyenne après la 1re atteinte</span><strong id="powerStable">—</strong></div></div><p class="hint">La « montée » se termine au premier franchissement de la consigne par la température réelle du four. La moyenne « après la 1re atteinte » porte sur la durée restante : ce n'est pas une détection garantie du régime permanent. Les indicateurs ne comprennent que la résistance, hors consommation auxiliaire.</p></section>
+<section class="panel" style="display:none"><div class="rowTitle"><h2>Oscilloscope 1 — Tension réseau</h2><span class="tag">230 V eff. · 50 Hz</span></div>
+<div class="scope-controls">
+ <div class="control"><label for="gridBase">Base de temps (ms/div)</label><select id="gridBase"><option value="1">1 ms/div</option><option value="2">2 ms/div</option><option value="5">5 ms/div</option><option value="10">10 ms/div</option><option value="20" selected>20 ms/div</option><option value="50">50 ms/div</option><option value="100">100 ms/div</option><option value="200">200 ms/div</option><option value="500">500 ms/div</option><option value="1000">1000 ms/div</option><option value="2000">2000 ms/div</option><option value="5000">5000 ms/div</option></select></div>
+ <div class="control"><label for="gridVolt">Sensibilité (V/div)</label><select id="gridVolt"><option value="25">25 V/div</option><option value="50">50 V/div</option><option value="100" selected>100 V/div</option><option value="200">200 V/div</option><option value="500">500 V/div</option></select></div>
+ <div class="control"><label for="gridOffset">Recul dans l'historique (s)</label><input id="gridOffset" type="number" min="0" max="100" value="0" step="0.5"></div>
+ <div class="control"><label for="gridFreeze">Acquisition</label><button id="gridFreeze" class="secondary" style="width:100%">❚❚ Figer</button></div>
+</div><div class="scope-meta"><span id="gridInfo">Réseau sinusoïdal</span><span>10 div · 8 div verticales</span></div><div class="scope-screen"><canvas id="gridChart" class="chart"></canvas></div><div class="legend"><span><i class="sw" style="background:#68c9ff"></i>u réseau (t)</span></div></section>
+<section class="panel" style="display:none"><div class="rowTitle"><h2>Oscilloscope 2 — Tension aux bornes de la résistance</h2><span id="burst" class="tag">Gradateur : ON</span></div>
+<div class="scope-controls">
+ <div class="control"><label for="loadBase">Base de temps (ms/div)</label><select id="loadBase"><option value="1">1 ms/div</option><option value="2">2 ms/div</option><option value="5">5 ms/div</option><option value="10">10 ms/div</option><option value="20" selected>20 ms/div</option><option value="50">50 ms/div</option><option value="100">100 ms/div</option><option value="200">200 ms/div</option><option value="500">500 ms/div</option><option value="1000">1000 ms/div</option><option value="2000">2000 ms/div</option><option value="5000">5000 ms/div</option></select></div>
+ <div class="control"><label for="loadVolt">Sensibilité (V/div)</label><select id="loadVolt"><option value="25">25 V/div</option><option value="50">50 V/div</option><option value="100" selected>100 V/div</option><option value="200">200 V/div</option><option value="500">500 V/div</option></select></div>
+ <div class="control"><label for="loadOffset">Recul dans l'historique (s)</label><input id="loadOffset" type="number" min="0" max="100" value="0" step="0.5"></div>
+ <div class="control"><label for="loadFreeze">Acquisition</label><button id="loadFreeze" class="secondary" style="width:100%">❚❚ Figer</button></div>
+</div><div class="scope-meta"><span id="loadInfo">Trains d'ondes entières · passages par zéro</span><span>10 div · 8 div verticales</span></div><div class="scope-screen"><canvas id="loadChart" class="chart"></canvas></div><div class="legend"><span><i class="sw" style="background:#f8c66f"></i>u résistance (t)</span></div><p class="hint" style="margin-top:10px">Réglages indépendants pour chaque voie : ms/div, V/div, gel et décalage vers le passé. Pour visualiser le train complet de 2 s, choisir 500 ms/div ou 1 s/div. Le gradateur laisse passer ou bloque des périodes entières de 20 ms ; aucune alternance n'est découpée.</p></section>
+<section class="panel" id="virtualBench"><h2>Banc de TP virtuel — puissance, commande et refroidissement</h2><p class="bench-note"><strong>Exercice de câblage :</strong> aucun instrument n’est raccordé à l’ouverture. Choisir un outil dans la mallette, puis cliquer sur une borne du schéma. Pour mesurer une tension, utiliser les bornes doubles prévues (référence sûre simulée). Pour le courant, poser la pince sur un conducteur.</p><div class="instrument-tray" id="instrumentTray"><button id="toolScope1" class="secondary">Sonde CH1</button><button id="toolScope2" class="secondary">Sonde CH2</button><button id="toolScope3" class="secondary">Pince CH3</button><button id="toolScope4" class="secondary">Sonde CH4</button><button id="toolMeterV" class="secondary">Cordons U · 8230</button><button id="toolMeterI" class="secondary">Pince I · 8230</button><button id="toolErase" class="secondary">Débrancher une sonde</button></div><div id="wireInstructions" class="wire-status">Sélectionne un instrument, puis clique sur un point de mesure.</div><p class="bench-note">Choisir une voie CH1 à CH4 avec « Placer la sonde », puis cliquer sur le schéma. Le courant se mesure sur la branche série amont du relais statique. Les tensions utilisent les pastilles prévues sur le schéma simplifié.</p><div class="schematic" style="background:#ffffff;border:1px solid #c9d3df"><svg viewBox="0 0 1180 450" role="img" aria-label="Circuit monophasé 230 volts 50 hertz : superviseur, générateur de tension, relais statique en série avec résistance du four, retour neutre et points de mesure">
+<rect width="1180" height="450" fill="#fff"/>
+<g font-family="Arial,sans-serif" fill="#152533">
+  <text x="22" y="40" font-size="21" font-weight="700">Schéma du banc de cuisson électrique</text>
+  <text x="22" y="63" font-size="12" fill="#536676">Réseau monophasé 230 V – 50 Hz · Phase L en rouge · Neutre N en bleu</text>
+</g>
+<!-- Superviseur à gauche, selon le schéma de référence -->
+<text x="34" y="126" fill="#172533" font-family="Georgia,serif" font-weight="700" font-size="21">Superviseur</text>
+<rect x="20" y="166" width="162" height="166" fill="#f5f5f5" stroke="#c1cad4" stroke-width="1"/>
+<rect x="43" y="195" width="95" height="66" rx="4" fill="#263746" stroke="#687d8b" stroke-width="3"/>
+<rect x="51" y="203" width="79" height="50" fill="#0e1922"/>
+<path d="M90 263 v11 m-29 6 h58" fill="none" stroke="#526574" stroke-width="6"/>
+<rect x="146" y="200" width="23" height="64" rx="2" fill="#7c8995" stroke="#354657" stroke-width="2"/>
+<rect x="51" y="298" width="108" height="13" rx="4" fill="#394a59"/>
+<text x="101" y="356" text-anchor="middle" font-size="12" fill="#526272">PC de supervision</text>
+<!-- Commande issue du superviseur : liaison haute, distincte des conducteurs de puissance -->
+<path d="M182 220 H203 V85 H545 V109" fill="none" stroke="#df8d34" stroke-width="3" stroke-dasharray="8 5"/>
+<path d="M539 100 L551 100 L545 109 Z" fill="#df8d34"/>
+<text x="310" y="78" font-size="13" fill="#a85f20" font-family="Arial,sans-serif">Commande / supervision du relais</text>
+<!-- Générateur de tension clairement représenté -->
+<rect x="230" y="165" width="136" height="204" fill="#fbfbfb" stroke="#dce1e6"/>
+<circle cx="298" cy="254" r="48" fill="white" stroke="#485f74" stroke-width="4"/>
+<path d="M266 254 C278 219 288 219 298 254 S318 289 330 254" fill="none" stroke="#485f74" stroke-width="4" stroke-linecap="round"/>
+<path d="M298 165 V206" stroke="#df292b" stroke-width="5"/>
+<path d="M298 302 V369" stroke="#1586bd" stroke-width="5"/>
+<text x="312" y="188" fill="#c32428" font-size="16" font-weight="700">L</text>
+<text x="312" y="348" fill="#096c9c" font-size="16" font-weight="700">N</text>
+<text x="298" y="397" text-anchor="middle" font-weight="700" font-size="16" fill="#273746">230 V · 50 Hz</text>
+<!-- Chaîne de puissance réellement série -->
+<path d="M298 165 H460" fill="none" stroke="#ee2628" stroke-width="5" stroke-linejoin="round"/>
+<path d="M630 165 H1007 V219" fill="none" stroke="#ee2628" stroke-width="5" stroke-linejoin="round"/>
+<path d="M1007 310 V369 H298" fill="none" stroke="#087eae" stroke-width="5" stroke-linejoin="round"/>
+<!-- SSR comme demandé -->
+<rect x="460" y="109" width="170" height="112" fill="#c4edc5" stroke="#315767" stroke-width="2.5"/>
+<text x="545" y="158" font-family="Georgia,serif" font-size="31" font-weight="700" text-anchor="middle" fill="#111">Relais</text>
+<text x="545" y="197" font-family="Georgia,serif" font-size="31" font-weight="700" text-anchor="middle" fill="#111">statique</text>
+<!-- Four et résistance, dans la position du croquis -->
+<rect x="935" y="138" width="144" height="246" fill="none" stroke="#c66d30" stroke-width="3"/>
+<rect x="978" y="219" width="58" height="91" fill="#f2c5af" stroke="#273c4c" stroke-width="2"/>
+
+<path d="M1007 310 V369" stroke="#087eae" stroke-width="5" fill="none"/>
+<text x="1006" y="113" text-anchor="middle" fill="#273746" font-size="16" font-weight="700">Four</text>
+<text x="1006" y="400" text-anchor="middle" fill="#273746" font-size="12">Résistance chauffante</text>
+<!-- points de mesure disponibles : courant en amont du SSR, les tensions à leurs points d'intérêt -->
+<g class="probe-pin" data-point="source" tabindex="0" role="button" aria-label="Mesure de tension du réseau">
+<circle cx="331" cy="165" r="13" fill="#4ea4e0" stroke="#2e4861" stroke-width="2.5"/><text x="309" y="137" font-size="12" font-weight="700" fill="#252c3c">U réseau</text></g>
+<g class="probe-pin" data-point="switch" tabindex="0" role="button" aria-label="Mesure de tension du relais statique">
+<circle cx="664" cy="165" r="15" fill="#965022" stroke="#2e4861" stroke-width="2.5"/><text x="649" y="138" font-size="12" font-weight="700" fill="#252c3c">U SSR</text></g>
+<g class="probe-pin" data-point="load" tabindex="0" role="button" aria-label="Mesure de tension sur la résistance">
+<circle cx="827" cy="165" r="15" fill="#91d774" stroke="#2e4861" stroke-width="2.5"/><text x="800" y="137" font-size="12" font-weight="700" fill="#252c3c">I charge</text></g>
+<!-- Point de commande sur la liaison supérieure -->
+<g class="probe-pin" data-point="gate" tabindex="0" role="button" aria-label="Mesure de la commande du relais statique"><circle cx="545" cy="94" r="11" fill="#91d774" stroke="#2e4861" stroke-width="2.5"/><text x="561" y="97" font-size="12" fill="#394e5c">Commande SSR</text></g>
+<!-- Sonde de température à l'intérieur du four : indépendante de la résistance -->
+<rect x="1042" y="306" width="26" height="28" rx="5" fill="#eef7ff" stroke="#3868a4" stroke-width="1.7"/>
+<circle cx="1055" cy="324" r="7" fill="#4c8bd7" stroke="#23578e" stroke-width="1.7"/>
+<path d="M1055 311 V324" stroke="#23578e" stroke-width="2.5"/>
+<text x="1081" y="320" font-size="12" fill="#205386">Capteur T°</text>
+<!-- points de mesure dédiés à l’exercice de câblage du 8230 -->
+<g class="probe-pin meter-port" data-point="load" tabindex="0" role="button" aria-label="Point de mesure tension 8230 sur la phase"><circle cx="912" cy="165" r="11" fill="#f0b34f" stroke="#2e4861" stroke-width="2.5"/></g>
+<g class="probe-pin meter-port" data-point="load" tabindex="0" role="button" aria-label="Point de mesure tension 8230 sur le neutre"><circle cx="912" cy="369" r="11" fill="#f0b34f" stroke="#2e4861" stroke-width="2.5"/></g>
+<g class="probe-pin meter-port" data-point="lineI" tabindex="0" role="button" aria-label="Point de mesure pince 8230 sur la phase"><circle cx="432" cy="165" r="11" fill="#d37ad2" stroke="#2e4861" stroke-width="2.5"/></g>
+<!-- Retour de mesure vers le superviseur, en partie basse -->
+<path d="M1055 334 V410 H112 V332" fill="none" stroke="#258c78" stroke-width="2.5" stroke-dasharray="9 6"/>
+<path d="M107 340 L112 332 L117 340 Z" fill="#258c78"/>
+<text x="364" y="402" font-size="12" fill="#1a7164" font-family="Arial,sans-serif">Retour de température vers le superviseur</text>
+<text x="25" y="435" font-size="12" fill="#516474">Clique sur une pastille de mesure après avoir choisi l'instrument dans la mallette.</text>
+</svg></div><div class="wire-status"><label style="display:flex;align-items:center;gap:10px">Ventilateur : <select id="coolingFan" style="background:#0b1424;color:#fff;border:1px solid #465c79;border-radius:6px;padding:6px"><option value="off">Arrêté</option><option value="disturbance">Perturbation thermique (chauffe maintenue)</option><option value="cooling">Refroidissement du four (chauffe coupée)</option></select></label><span id="fanState">Ventilateur arrêté</span></div><p id="probeStatus" class="pill" aria-live="polite">CH1–CH4 : aucune sonde raccordée</p></section>
+<section class="panel"><div class="scope-four"><div class="scope-top"><span>TEKTRONIX <small style="font-weight:400;font-size:11px">— Oscilloscope pédagogique 4 voies</small></span><span id="scopeRun" class="pill">RUN</span></div><div class="tek-screen"><canvas id="tekChart"></canvas></div><div class="scope-state">Zoom : tracer un rectangle dans la grille à la souris ; double-clic = vue standard. Les repères T et CH1–CH4 restent déplaçables.</div><div class="scope-state" id="tekInfo">10 divisions horizontales · 8 divisions verticales</div><div class="four-controls"><div class="channel" id="channel1"><h3 style="color:#f8db50">● CH1</h3><label for="ch1Signal">Sonde / point raccordé (étudiant)</label><select id="ch1Signal"><option value="none" selected>Débranchée</option><option value="source">U réseau (V)</option><option value="load">U résistance (V)</option><option value="switch">U gradateur (V)</option><option value="lineI">I Charge (A)</option><option value="gate">Commande (0 / 1)</option></select><label for="ch1Scale">Sensibilité verticale (unité/div)</label><select id="ch1Scale"><option value="0.2">0,2</option><option value="0.5">0,5</option><option value="1">1</option><option value="2">2</option><option value="5">5</option><option value="10">10</option><option value="20">20</option><option value="50">50</option><option value="100" selected>100</option><option value="200">200</option><option value="500">500</option></select><label for="ch1Position">Position verticale (div)</label><input type="range" id="ch1Position" min="-3.8" max="3.8" step="0.1" value="2"><button class="secondary" id="arm1">Placer la sonde CH1</button></div><div class="channel" id="channel2"><h3 style="color:#70d5ff">● CH2</h3><label for="ch2Signal">Sonde / point raccordé (étudiant)</label><select id="ch2Signal"><option value="none" selected>Débranchée</option><option value="source">U réseau (V)</option><option value="load">U résistance (V)</option><option value="switch">U gradateur (V)</option><option value="lineI">I Charge (A)</option><option value="gate">Commande (0 / 1)</option></select><label for="ch2Scale">Sensibilité verticale (unité/div)</label><select id="ch2Scale"><option value="0.2">0,2</option><option value="0.5">0,5</option><option value="1">1</option><option value="2">2</option><option value="5">5</option><option value="10">10</option><option value="20">20</option><option value="50">50</option><option value="100" selected>100</option><option value="200">200</option><option value="500">500</option></select><label for="ch2Position">Position verticale (div)</label><input type="range" id="ch2Position" min="-3.8" max="3.8" step="0.1" value="0"><button class="secondary" id="arm2">Placer la sonde CH2</button></div><div class="channel" id="channel3"><h3 style="color:#f29be4">● CH3</h3><label for="ch3Signal">Sonde / point raccordé (étudiant)</label><select id="ch3Signal"><option value="none" selected>Débranchée</option><option value="source">U réseau (V)</option><option value="load">U résistance (V)</option><option value="switch">U gradateur (V)</option><option value="lineI">I Charge (A)</option><option value="gate">Commande (0 / 1)</option></select><label for="ch3Scale">Sensibilité verticale (unité/div)</label><select id="ch3Scale"><option value="0.2">0,2</option><option value="0.5">0,5</option><option value="1">1</option><option value="2">2</option><option value="5" selected>5</option><option value="10">10</option><option value="20">20</option><option value="50">50</option><option value="100">100</option><option value="200">200</option><option value="500">500</option></select><label for="ch3Position">Position verticale (div)</label><input type="range" id="ch3Position" min="-3.8" max="3.8" step="0.1" value="-2"><button class="secondary" id="arm3">Placer la sonde CH3</button></div><div class="channel" id="channel4"><h3 style="color:#99eb80">● CH4</h3><label for="ch4Signal">Sonde / point raccordé (étudiant)</label><select id="ch4Signal"><option value="none" selected>Débranchée</option><option value="source">U réseau (V)</option><option value="load">U résistance (V)</option><option value="switch">U gradateur (V)</option><option value="lineI">I Charge (A)</option><option value="gate">Commande (0 / 1)</option></select><label for="ch4Scale">Sensibilité verticale (unité/div)</label><select id="ch4Scale"><option value="0.2">0,2</option><option value="0.5">0,5</option><option value="1" selected>1</option><option value="2">2</option><option value="5">5</option><option value="10">10</option><option value="20">20</option><option value="50">50</option><option value="100">100</option><option value="200">200</option><option value="500">500</option></select><label for="ch4Position">Position verticale (div)</label><input type="range" id="ch4Position" min="-3.8" max="3.8" step="0.1" value="-3"><button class="secondary" id="arm4">Placer la sonde CH4</button></div></div><div class="scope-footer"><div class="control"><label for="tekBase">BASE DE TEMPS (ms/div)</label><select id="tekBase"><option value="1">1 ms/div</option><option value="2">2 ms/div</option><option value="5">5 ms/div</option><option value="10">10 ms/div</option><option value="20" selected>20 ms/div</option><option value="50">50 ms/div</option><option value="100">100 ms/div</option><option value="200">200 ms/div</option><option value="500">500 ms/div</option><option value="1000">1 s/div</option><option value="2000">2 s/div</option><option value="5000">5 s/div</option><option value="10000">10 s/div</option><option value="20000">20 s/div</option><option value="30000">30 s/div</option><option value="60000">1 min/div</option><option value="120000">2 min/div</option><option value="300000">5 min/div</option></select></div><div class="control"><label for="tekBack">Recul temporel (s)</label><input type="number" id="tekBack" value="0" min="0" max="7200" step="0.2"></div><button id="tekFreeze" class="secondary">❚❚ Figer</button><button id="tekReset" class="secondary">Centrer</button></div>
+<div class="scope-footer"><div class="control"><label for="tekTriggerPos">Position horizontale du déclenchement : <span id="tekTriggerPosValue">30 %</span></label><input type="range" id="tekTriggerPos" min="10" max="90" step="5" value="30" title="Position du point de déclenchement dans les dix divisions"></div><div class="control"><label for="tekTriggerSource">Déclenchement · source</label><select id="tekTriggerSource"><option value="source" selected>CH · U réseau</option><option value="load">U résistance</option><option value="lineI">I Charge</option><option value="gate">Commande gradateur</option></select></div><div class="control"><label for="tekTriggerLevel">Seuil déclenchement (V/A/unité)</label><input type="number" id="tekTriggerLevel" value="0" step="1"></div><div class="control"><label for="tekTriggerSlope">Front</label><select id="tekTriggerSlope"><option value="rising">Montant ↗</option><option value="falling">Descendant ↘</option></select></div><div class="control"><label for="tekTriggerMode">Mode</label><select id="tekTriggerMode"><option value="auto">AUTO</option><option value="normal">NORMAL</option></select></div><div class="control"><label for="tekSweepRate">Vitesse de balayage à l’écran</label><select id="tekSweepRate"><option value="1000">1 s / balayage</option><option value="2000" selected>2 s / balayage</option><option value="4000">4 s / balayage</option><option value="8000">8 s / balayage</option></select></div><button id="tekSingle" class="secondary">Acquisition unique</button></div>
+<p class="bench-note">Le triangle T en haut de l’écran est <strong>déplaçable horizontalement</strong> pour choisir la position du déclenchement. Les repères colorés 1–4 à gauche de l’écran sont <strong>déplaçables verticalement</strong> pour décaler chaque voie. L’acquisition est affichée en permanence ; le curseur balaie <strong>de gauche vers la droite</strong> sans effacer la trame précédente. L’oscilloscope relit les échantillons simulés à vitesse d’affichage réglable, indépendamment de l’accélération thermique. Le réglage en ms/div conserve le sens physique de l’échelle. Le déclenchement est une approximation pédagogique.</p></div><p class="bench-note" style="margin-top:10px">Échelles indépendantes par voie en V/div, A/div ou unité/div selon la grandeur. L'échelle de temps est commune aux quatre voies. Affichage calculé à partir des périodes commutées : les grandes bases de temps utilisent une enveloppe min/max pour éviter le repliement visuel. Ce n'est pas un oscilloscope réel.</p></section>
+<section class="panel"><h2>Analyseur monophasé — façade inspirée du Chauvin Arnoux C.A 8230</h2><div class="meter"><div class="meter-title"><span>CHAUVIN ARNOUX</span><span>C.A 8230 · modèle pédagogique</span></div><div class="meter-config"><div class="status" id="meterHelp" style="padding:10px;background:#fff4ce;color:#443315;border:1px solid #a78a38;margin-bottom:12px">1. Choisir « Cordons U · 8230 » et cliquer U réseau ; 2. choisir « Pince I · 8230 » et cliquer I ligne ; 3. régler 1P2W / 50 Hz / pince 100 A / 300 V ; 4. VALIDER ; 5. Acquisition MARCHE.</div><div style="font-size:14px;font-weight:800">Mise en service — configuration par l’étudiant</div><div class="config-grid"><label>Type de réseau<select id="meterNetwork"><option value="">Choisir…</option><option value="1P2W">Monophasé 2 fils</option><option value="3P">Triphasé (incorrect ici)</option></select></label><label>Fréquence réseau<select id="meterFreq"><option value="">Choisir…</option><option value="50">50 Hz</option><option value="60">60 Hz</option></select></label><label>Capteur courant<select id="meterClamp"><option value="">Choisir…</option><option value="10">Pince 10 A</option><option value="100">Pince 100 A</option><option value="1000">Pince 1000 A</option></select></label><label>Calibre tension<select id="meterVRange"><option value="">Choisir…</option><option value="100">100 V</option><option value="300">300 V</option><option value="600">600 V</option></select></label><label>Mode mesure<select id="meterFunction"><option value="">Choisir…</option><option value="power">U / I / P / S / PF</option><option value="energy">Énergie</option></select></label><label>Acquisition<select id="meterAcquire"><option value="stop">ARRÊT</option><option value="run">MARCHE</option></select></label></div><button id="meterConfigure">VALIDER LA CONFIGURATION</button><div id="meterConfigState" class="status">Analyseur non configuré : choisir les paramètres et raccorder les sondes</div></div><div class="meter-display"><div style="font-size:12px;border-bottom:1px solid #638477;padding-bottom:5px"><span id="meterScreenHeader">8230 · CONFIGURATION REQUISE</span></div><div class="meter-readings" id="meterReadings"><div><small>TENSION RMS</small><strong id="mU">— V</strong></div><div><small>COURANT RMS</small><strong id="mI">— A</strong></div><div><small>PUISSANCE ACTIVE</small><strong id="mP">— W</strong></div><div><small>PUISSANCE APPARENTE</small><strong id="mS">— VA</strong></div><div><small>PUISSANCE RÉACTIVE*</small><strong id="mQ">— var</strong></div><div><small>FACTEUR DE PUISSANCE GLOBAL PF</small><strong id="mPF">—</strong></div><div><small>DPF / cos φ₁ (φ₁ = 0°)</small><strong id="mDPF">—</strong></div><div><small>ÉNERGIE CONSOMMÉE</small><strong id="mE">— Wh</strong><small id="mEkWh">0,0000 kWh</small></div><div><small>CONDUCTION MOYENNE</small><strong id="mAlpha">— %</strong></div></div></div><div class="meter-ctrl"><label for="meterVoltage">Cordons de tension (pilotés par la mallette) : <select id="meterVoltage"><option value="none" selected>Non raccordés</option><option value="source">Réseau L-N</option><option value="load">Bornes de la résistance</option></select></label><label for="meterCurrent">Pince de courant (pilotée par la mallette) : <select id="meterCurrent"><option value="none" selected>Non raccordée</option><option value="lineI">Courant de ligne</option></select></label></div><button class="secondary" id="meterEnergyReset" style="margin-top:10px">Remise à zéro du compteur d’énergie</button><p style="font-size:10px;margin-top:8px">* Charge purement résistive : Q fondamental = 0 var. Le courant haché en trains entiers fait varier le PF global (P/S) ; DPF = 1 en conduction. Puissances estimées sur les dernières 2 s de simulation ; énergie intégrée depuis le départ. PF=P/S n’est pas un angle de phase.</p></div></section>
+<section class="panel"><h2>Schéma fonctionnel et modèle</h2><div class="formula">Réseau 230 V / 50 Hz → gradateur à passages par zéro → résistance du four → température → capteur → régulateur TOR ou PI → gradateur.<br> Éléments chauffants : Ch · dTh/dt = Pn · g(t) − G · (Th − T).<br> Enceinte : Cth · dT/dt = G · (Th − T) − Kth · (T − Tamb), avec g(t) = 0 ou 1.<br> Capteur : τs · dTmes/dt = T − Tmes.<br> PI : Kp = 100/Pb (%/°C) ; u = sat[ Kp · e + (Kp/Ti) · ∫ e dt ] (0 à 100 %).<br> Fenêtre de N périodes : N<sub>ON</sub> ≈ arrondi(N · u / 100).</div><p class="footer">Le régulateur « Eurotherm » est ici une représentation fonctionnelle générique, non une reproduction officielle de son logiciel interne. L'algorithme PI est discrétisé avec anti-saturation simple. Le train d'ondes est reconstruit période par période pour 50 Hz. Les fluctuations rapides de température ne sont pas représentatives d'une géométrie réelle de four.</p></section>
+</main></div></div>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const val=id=>{const x=Number($(id).value);return Number.isFinite(x)?x:0};
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+let timer=null, running=false,t=0,T=20,Th=20,pv=20,duty=100,integral=0,relay=true,windCycle=0,onCycles=100,windowCycles=100,windowOnCount=0,windowTotalCount=0,lastPower=0, currentOn=false,euroPage=0;
+let traces=[],wave=[],waveStartCycle=0,lastSample=-1,sampleInterval=2;const scopeFreeze={grid:null,load:null};
+const dt=.02, refreshMs=50;
+function reset(){pause();t=0;T=val('ambient');Th=T;pv=T;integral=0;relay=true;duty=100;windCycle=0;windowOnCount=0;windowTotalCount=0;lastPower=0;traces=[{t:0,T,pv,sp:val('setpoint'),p:0}];wave=[];waveStartCycle=0;scopeFreeze.grid=null;scopeFreeze.load=null;for(const name of ["grid","load"]){$(name+"Freeze").textContent="❚❚ Figer";$(name+"Offset").value=0;}lastSample=0;sampleInterval=2;euroPage=0;currentOn=false;changeMode();syncWindow(true);updateUi();drawAll();$('state').textContent='Prêt';}
+function pause(){if(timer!==null)clearInterval(timer);timer=null;running=false;$('run').textContent='▶ Démarrer';}
+function toggle(){if(running){pause();$('state').textContent='En pause'}else{running=true;$('run').textContent='❚❚ Pause';$('state').textContent='Simulation en cours';timer=setInterval(tick,refreshMs)}}
+function changeMode(){ $('piCtrls').classList.toggle('hidden',$('mode').value!=='pi');$('torCtrls').classList.toggle('hidden',$('mode').value==='pi');integral=0;relay=pv<val('setpoint');duty=relay?100:0;syncWindow(true);updateUi();}
+function syncWindow(force=false){const n=Math.max(1,Math.round(clamp(val('window'),.02,20)/dt));if(n!==windowCycles||force){windowCycles=n;windCycle=0;onCycles=clamp(Math.round(windowCycles*duty/100),0,windowCycles);}}
+function control(){const e=val('setpoint')-pv;if($('mode').value==='tor'){const half=val('hyst')/2;if(pv<=val('setpoint')-half)relay=true;else if(pv>=val('setpoint')+half)relay=false;duty=relay?100:0;}else{const kp=100/Math.max(.1,val('pb')),ki=kp/Math.max(1,val('ti'));const unsat=kp*e+integral;const high=unsat>=100,low=unsat<=0;if((!high&&!low)||(high&&e<0)||(low&&e>0))integral=clamp(integral+ki*e*dt,-100,100);duty=clamp(kp*e+integral,0,100);}}
+function step(){control();syncWindow();if(windCycle===0)onCycles=clamp(Math.round(windowCycles*duty/100),0,windowCycles);const fanMode=$('coolingFan').value,fanCooling=fanMode==='cooling',fanDisturbance=fanMode==='disturbance';const on=!fanCooling&&windCycle<onCycles;currentOn=on;const p=on?Math.max(0,val('power')):0;const C=Math.max(1,val('capacity')),Ch=Math.max(1,val('heaterCapacity')),G=Math.max(0,val('transfer')),k=Math.max(0,val('loss')),Ta=val('ambient');const exchanged=G*(Th-T);const dTh=(p-exchanged-(fanCooling?22*(Th-Ta):fanDisturbance?5*(Th-Ta):0))/Ch;const dT=(exchanged-(k+(fanCooling?65:fanDisturbance?20:0))*(T-Ta))/C;Th+=dTh*dt;T+=dT*dt;const tau=Math.max(0,val('sensor'));pv=tau===0?T:pv+(T-pv)*(1-Math.exp(-dt/tau));t+=dt;windowTotalCount++;if(on)windowOnCount++;wave.push(on?1:0);if(wave.length>600000){wave.splice(0,40000);waveStartCycle+=40000;}windCycle=(windCycle+1)%windowCycles;if(windCycle===0){lastPower=100*windowOnCount/Math.max(1,windowTotalCount);windowOnCount=0;windowTotalCount=0;}
+const bucket=Math.floor(t/sampleInterval);if(bucket!==lastSample){traces.push({t:t/60,T,pv,sp:val('setpoint'),p:lastPower});lastSample=bucket;if(traces.length>5000){const reduced=[traces[0]];for(let i=2;i<traces.length-1;i+=2)reduced.push(traces[i]);reduced.push(traces[traces.length-1]);traces=reduced;sampleInterval*=2;lastSample=Math.floor(t/sampleInterval);}}}
+function tick(){let n=Math.round(val('speed')*refreshMs/1000/dt);n=clamp(n,1,1500);for(let i=0;i<n;i++)step();updateUi();drawAll();}
+function fmt(x,d=1){return x.toLocaleString('fr-FR',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function updateUi(){$('temp').textContent=fmt(T)+' °C';$('pv').textContent=fmt(pv)+' °C';$('demand').textContent=fmt(duty,0)+' %';$('time').textContent=fmt(t/60)+' min';$('burst').textContent='Gradateur : '+(currentOn?'ON':'OFF');$('op1').classList.toggle('active',currentOn);$('euroPV').textContent=fmt(pv);const labels=['SP','OP','PB','TI'];$('euroParam').textContent=labels[euroPage];$('euroSP').textContent=euroPage===0?fmt(val('setpoint')):euroPage===1?fmt(duty,0)+' %':euroPage===2?fmt(val('pb')):fmt(val('ti'),0);}
+function canvasSetup(id){const c=$(id),w=Math.max(260,c.clientWidth),h=c.clientHeight||220,dpr=window.devicePixelRatio||1;c.width=Math.round(w*dpr);c.height=Math.round(h*dpr);const x=c.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);return{x,w,h};}
+function scaffold(x,w,h,minY,maxY,maxX,labelFn){const L=55,R=14,top=14,B=28;const W=w-L-R,H=h-top-B;x.fillStyle='#10192b';x.fillRect(0,0,w,h);x.strokeStyle='#30415b';x.lineWidth=1;x.font='11px Segoe UI,Arial';x.fillStyle='#9eafc7';for(let i=0;i<=4;i++){const y=top+H*i/4;x.beginPath();x.moveTo(L,y);x.lineTo(w-R,y);x.stroke();x.fillText(labelFn(maxY-(maxY-minY)*i/4),7,y+4);}for(let i=0;i<=5;i++){const px=L+W*i/5;x.beginPath();x.moveTo(px,top);x.lineTo(px,top+H);x.stroke();x.fillText((maxX*i/5).toFixed(maxX<10?1:0),px-9,h-8);}return{L,top,W,H,mapX:v=>L+W*(v/maxX),mapY:v=>top+H*(maxY-v)/(maxY-minY||1)};}
+function pathLine(x,data,fx,fy,color,dashed=false){x.beginPath();data.forEach((d,i)=>{const px=fx(d),py=fy(d);if(i===0)x.moveTo(px,py);else x.lineTo(px,py)});x.strokeStyle=color;x.lineWidth=2;x.setLineDash(dashed?[6,4]:[]);x.stroke();x.setLineDash([]);}
+let chartZoom={temp:null,power:null},zoomDrag=null;
+function tempGraph(){const {x,w,h}=canvasSetup('tempChart');const maxX=chartZoom.temp?chartZoom.temp.x1:Math.max(5,t/60*1.02);$('historyInfo').textContent='Historique : 0 à '+fmt(t/60,1)+' min • compression automatique';const autoMin=Math.min(val('ambient')-10,val('setpoint')-15,...traces.map(a=>Math.min(a.T,a.pv)));const autoMax=Math.max(val('setpoint')+30,T+15,...traces.map(a=>Math.max(a.T,a.pv)));const scale=$('tempScale').value;const center=val('tempCenter');const minY=chartZoom.temp?chartZoom.temp.y0:(scale==='auto'?Math.floor(autoMin/20)*20:center-Number(scale)/2);const maxY=chartZoom.temp?chartZoom.temp.y1:(scale==='auto'?Math.ceil(autoMax/20)*20:center+Number(scale)/2);const scaffolded=scaffold(x,w,h,minY,maxY,maxX,v=>fmt(v,0)+'°');scaffolded.mapX=chartZoom.temp?(v=>scaffolded.L+(v-chartZoom.temp.x0)/Math.max(.001,chartZoom.temp.x1-chartZoom.temp.x0)*scaffolded.W):scaffolded.mapX;const s=scaffolded;if(chartZoom.temp)renderZoomXTicks(x,s,chartZoom.temp);if(traces.length){x.save();x.beginPath();x.rect(s.L,s.top,s.W,s.H);x.clip();pathLine(x,traces,d=>s.mapX(d.t),d=>s.mapY(d.sp),'#8bdb92',true);pathLine(x,traces,d=>s.mapX(d.t),d=>s.mapY(d.T),'#f59e74');pathLine(x,traces,d=>s.mapX(d.t),d=>s.mapY(d.pv),'#68c9ff');x.restore();}}
+function powerGraph(){const {x,w,h}=canvasSetup('powerChart');const maxX=chartZoom.power?chartZoom.power.x1:Math.max(5,t/60*1.02);const s=scaffold(x,w,h,chartZoom.power?chartZoom.power.y0:0,chartZoom.power?chartZoom.power.y1:100,maxX,v=>fmt(v,0)+'%');if(chartZoom.power)s.mapX=v=>s.L+(v-chartZoom.power.x0)/Math.max(.001,chartZoom.power.x1-chartZoom.power.x0)*s.W;if(chartZoom.power)renderZoomXTicks(x,s,chartZoom.power);if(traces.length){x.save();x.beginPath();x.rect(s.L,s.top,s.W,s.H);x.clip();pathLine(x,traces,d=>s.mapX(d.t),d=>s.mapY(d.p),'#d0a7ff');x.restore();}}
+function scopeGraph(name){
+ const {x,w,h}=canvasSetup(name+'Chart');
+ const base=val(name+'Base')/1000,volt=val(name+'Volt');
+ const total=base*10,offset=Math.max(0,val(name+'Offset'));
+ const endTime=Math.max(0,(scopeFreeze[name]===null?t:scopeFreeze[name])-offset);
+ const beginTime=endTime-total;
+ const L=64,R=14,top=15,B=33,W=w-L-R,H=h-top-B;
+ x.fillStyle='#081624';x.fillRect(0,0,w,h);x.strokeStyle='#2c495a';x.lineWidth=1;
+ x.font='11px Segoe UI,Arial';x.fillStyle='#adc3d5';
+ for(let i=0;i<=10;i++){const xx=L+i*W/10;x.beginPath();x.moveTo(xx,top);x.lineTo(xx,top+H);x.stroke();const tt=beginTime+i*base;x.fillText(tt.toFixed(base<.01?3:base<.1?2:1)+' s',Math.max(2,xx-15),h-12);}
+ for(let i=0;i<=8;i++){const yy=top+i*H/8;x.beginPath();x.moveTo(L,yy);x.lineTo(w-R,yy);x.stroke();x.fillText(fmt((4-i)*volt,0)+' V',4,yy+4);}
+ x.strokeStyle='#688398';x.setLineDash([4,4]);x.beginPath();x.moveTo(L,top+H/2);x.lineTo(w-R,top+H/2);x.stroke();x.setLineDash([]);
+ x.save();x.beginPath();x.rect(L,top,W,H);x.clip();
+ // Downsampling only for the visual. Cycle state remains at precise 20-ms resolution.
+ const n=Math.min(12000,Math.max(1200,Math.ceil(W*3),Math.ceil(total/.02)*12));
+ function voltage(time){if(time<0||time>t+1e-8)return null;
+ const u=230*Math.SQRT2*Math.sin(2*Math.PI*50*time);
+ if(name==='grid')return u;
+ const cycle=Math.floor((time+1e-9)/dt);
+ const index=cycle-waveStartCycle;
+ if(index<0||index>=wave.length)return null;
+ return wave[index]===1?u:0;}
+ let previous=false;
+ x.strokeStyle=name==='grid'?'#68c9ff':'#f8c66f';x.lineWidth=1.8;x.beginPath();
+ for(let i=0;i<=n;i++){const tt=beginTime+total*i/n;const u=voltage(tt);if(u===null){previous=false;continue;}const px=L+W*i/n,py=top+H/2-u*H/(8*volt);if(previous)x.lineTo(px,py);else x.moveTo(px,py);previous=true;}
+ x.stroke();x.restore();
+ const span=total<1?fmt(total*1000,0)+' ms':fmt(total,2)+' s';
+ $(name+'Info').textContent='Écran : '+span+' · '+fmt(base*1000,0)+' ms/div · '+fmt(volt,0)+' V/div'+(scopeFreeze[name]!==null?' · acquisition figée':'');
+}
+function drawAll(){tempGraph();powerGraph();}
+function keyAdjust(delta){const id=['setpoint',null,'pb','ti'][euroPage];if(!id)return;const el=$(id),step=euroPage===0?1:euroPage===2?1:10;el.value=clamp(val(id)+delta*step,Number(el.min)||0,Number(el.max)||500);if(id==='setpoint'&&!running)control();updateUi();drawAll();}
+$('eUp').addEventListener('click',()=>keyAdjust(1));$('eDown').addEventListener('click',()=>keyAdjust(-1));$('ePage').addEventListener('click',()=>{euroPage=0;updateUi()});$('eScroll').addEventListener('click',()=>{euroPage=(euroPage+1)%4;updateUi()});
+$('export').addEventListener('click',()=>{const lines=['temps_min;temperature_four_C;temperature_mesuree_C;consigne_C;puissance_moyenne_pct;energie_active_Wh',...traces.map(a=>[a.t,a.T,a.pv,a.sp,a.p,a.energy??0].map(v=>String(v).replace('.',',')).join(';'))];const blob=new Blob(['\uFEFF'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});const u=URL.createObjectURL(blob);const a=document.createElement('a');a.href=u;a.download='simulation_four.csv';a.click();URL.revokeObjectURL(u)});
+$('run').addEventListener('click',toggle);$('reset').addEventListener('click',reset);$('mode').addEventListener('change',changeMode);$('window').addEventListener('change',()=>syncWindow(true));for(const name of ['grid','load']){for(const param of ['Base','Volt','Offset'])$(name+param).addEventListener(param==='Offset'?'input':'change',drawAll);$(name+'Freeze').addEventListener('click',()=>{scopeFreeze[name]=scopeFreeze[name]===null?t:null;$(name+'Freeze').textContent=scopeFreeze[name]===null?'❚❚ Figer':'▶ Reprendre';drawAll();});}for(const el of ['tempScale','tempCenter'])$(el).addEventListener('input',drawAll);window.addEventListener('resize',drawAll);reset();
+
+// Banc de mesure virtuel, développé par-dessus le moteur thermique de la V5.
+const chColors=['#f8db50','#70d5ff','#f29be4','#99eb80'];
+let armedChannel=0,tekHold=null,energyWh=0,firstReached=null,atCrossWh=null,resetEnergyAt=0;
+// Acquisition gelée pendant un balayage, peinte progressivement de gauche à droite.
+let tekSweep={start:null,end:null,began:0,progress:0,waiting:false,single:false,completed:false};
+function invalidateTekSweep(){tekSweep={start:null,end:null,began:0,progress:0,waiting:false,single:false,completed:false};}
+function findTrigger(start,end){
+ const sig=$('tekTriggerSource').value,level=val('tekTriggerLevel'),up=$('tekTriggerSlope').value==='rising';
+ const first=Math.max(0,start),last=Math.min(t,end);
+ // On conserve le dernier franchissement : on ne repart pas sur un front ancien.
+ let prev=atTime(sig,first),found=null;
+ const sample=Math.max(.0002,(last-first)/9000);
+ for(let tt=first+sample;tt<=last;tt+=sample){
+  const v=atTime(sig,tt);
+  if(v!==null&&prev!==null&&(up?(prev<level&&v>=level):(prev>level&&v<=level)))found=tt;
+  prev=v;
+ }
+ return found;
+}
+function startTekSweep(){
+ const total=val('tekBase')/1000*10,frac=val('tekTriggerPos')/100;
+ const reference=Math.max(0,(tekHold===null?t:tekHold)-Math.max(0,val('tekBack')));
+ // Une trame complète est acquise avant balayage ; le front se place à la fraction choisie.
+ const latestTrigger=reference-total*(1-frac);
+ const found=latestTrigger>=0?findTrigger(Math.max(0,latestTrigger-Math.max(total,1.2)),latestTrigger):null;
+ if(found===null && $('tekTriggerMode').value==='normal'){
+  tekSweep.waiting=true;tekSweep.began=performance.now();tekSweep.start=null;return;
+ }
+ const trigger=found===null?Math.max(0,latestTrigger):found;
+ let start=trigger-total*frac;
+ // AUTO : acquis disponible ; NORMAL : fenêtre complète et déclenchement bien positionné.
+ if(found===null)start=Math.max(0,reference-total);
+ tekSweep.start=start;tekSweep.end=start+total;tekSweep.trigger=found;
+ tekSweep.began=performance.now();tekSweep.progress=0;tekSweep.waiting=false;tekSweep.completed=false;
+}
+
+
+const oldStep=step;
+step=function(){
+ oldStep();
+ if(currentOn)energyWh+=Math.max(0,val('power'))*dt/3600;
+ if(firstReached===null && T>=val('setpoint') && t>0){firstReached=t;atCrossWh=energyWh;}
+ if(traces.length){const last=traces[traces.length-1];if(last.t*60>=t-0.021)last.energy=energyWh;}
+};
+const oldReset=reset;
+reset=function(){tekMouseZoom=null;chartZoom.temp=null;chartZoom.power=null;energyWh=0;firstReached=null;atCrossWh=null;resetEnergyAt=0;tekHold=null;invalidateTekSweep();oldReset();$('tekFreeze').textContent='❚❚ Figer';drawVirtualBench();};
+const oldDrawAll=drawAll;
+drawAll=function(){oldDrawAll();drawEnergy();drawVirtualBench();refreshFirstPeak();};
+function channelSignal(ch){return $('ch'+ch+'Signal').value;}
+function units(sig){return sig==='lineI'||sig==='loadI'?'A':sig==='gate'?'unité':'V';}
+function probeName(sig){return {none:'débranchée',source:'U réseau',load:'U résistance',switch:'U gradateur',lineI:'I ligne = I charge',loadI:'I ligne = I charge',gate:'commande'}[sig];}
+function showProbeStatus(){let s=[];for(let i=1;i<=4;i++)s.push('CH'+i+' : '+probeName(channelSignal(i)));$('probeStatus').textContent=s.join(' · ');}
+for(let i=1;i<=4;i++){
+ $('arm'+i).addEventListener('click',()=>{armedChannel=armedChannel===i?0:i;for(let j=1;j<=4;j++)$('channel'+j).classList.toggle('armed',armedChannel===j);$('probeStatus').textContent=armedChannel?'CH'+armedChannel+' prête : cliquer un point coloré sur le schéma.':'Placement annulé.';});
+ for(const field of ['Signal','Scale','Position'])$('ch'+i+field).addEventListener('input',()=>{showProbeStatus();drawVirtualBench();});
+}
+for(const n of document.querySelectorAll('.probe-pin')){
+ const attach=()=>{if(!armedChannel){$('probeStatus').textContent='Sélectionne d’abord une voie avec « Placer la sonde CHn ».';return;}const ch=armedChannel;$('ch'+ch+'Signal').value=n.dataset.point;armedChannel=0;for(let j=1;j<=4;j++)$('channel'+j).classList.remove('armed');showProbeStatus();drawVirtualBench();};
+ n.addEventListener('click',attach);n.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();attach();}});
+}
+for(const id of ['tekBase','tekBack','tekTriggerSource','tekTriggerLevel','tekTriggerSlope','tekTriggerMode','tekSweepRate','tekTriggerPos'])$(id).addEventListener('input',()=>{ $('tekTriggerPosValue').textContent=val('tekTriggerPos')+' %';tekMouseZoom=null;invalidateTekSweep();drawVirtualBench();});
+$('tekFreeze').addEventListener('click',()=>{tekHold=tekHold===null?t:null;$('tekFreeze').textContent=tekHold===null?'❚❚ Figer':'▶ Reprendre';if(tekHold===null)invalidateTekSweep();drawVirtualBench();});
+$('tekSingle').addEventListener('click',()=>{tekHold=null;invalidateTekSweep();tekSweep.single=true;startTekSweep();drawVirtualBench();});
+$('tekReset').addEventListener('click',()=>{tekMouseZoom=null;$('tekBack').value=0;tekHold=null;invalidateTekSweep();$('tekFreeze').textContent='❚❚ Figer';for(let i=1;i<=4;i++)$('ch'+i+'Position').value=[2,0,-2,-3][i-1];drawVirtualBench();});
+for(const id of ['meterVoltage','meterCurrent'])$(id).addEventListener('change',drawVirtualBench);
+// Source sinusoidale 230 Vrms, résistance sans inductance et gradateur idéal.
+function atTime(sig,tt){
+ if(tt<0||tt>t+1e-7)return null;
+ const sinus=230*Math.SQRT2*Math.sin(2*Math.PI*50*tt);
+ const index=Math.floor((tt+1e-8)/dt)-waveStartCycle;
+ const known=index>=0&&index<wave.length;
+ if(sig==='source')return sinus;
+ if(sig==='none')return null;
+ if(!known)return null;
+ const conducting=wave[index]===1;
+ if(sig==='load')return conducting?sinus:0;
+ if(sig==='switch')return conducting?0:sinus;
+ if(sig==='lineI'||sig==='loadI')return conducting?sinus*Math.max(0,val('power'))/(230*230):0;
+ if(sig==='gate')return conducting?1:0;
+ return null;
+}
+// Déplacement à la souris ou au doigt des repères de l'écran (interaction directe).
+let scopeDragging=null;
+$('tekChart').addEventListener('pointerdown',e=>{
+ const c=$('tekChart'),r=c.getBoundingClientRect(),px=(e.clientX-r.left),py=(e.clientY-r.top);
+ const L=54,top=20,W=c.clientWidth-68,H=c.clientHeight-55;
+ if(py<=top+18 && px>=L && px<=L+W){scopeDragging={type:'trigger'};}
+ else if(px>=L-45&&px<=L+5&&py>=top-10&&py<=top+H+10){
+  let nearest=0,dist=Infinity;
+  for(let ch=1;ch<=4;ch++){
+   if(channelSignal(ch)==='none')continue;
+   const origin=top+H/2-H*val('ch'+ch+'Position')/8,d=Math.abs(py-origin);
+   if(d<dist){dist=d;nearest=ch;}
+  }
+  if(nearest&&dist<30)scopeDragging={type:'channel',ch:nearest};
+ }
+ if(scopeDragging){c.setPointerCapture(e.pointerId);e.preventDefault();}
+});
+$('tekChart').addEventListener('pointermove',e=>{
+ if(!scopeDragging)return;
+ const c=$('tekChart'),r=c.getBoundingClientRect(),px=e.clientX-r.left,py=e.clientY-r.top;
+ const L=54,top=20,W=c.clientWidth-68,H=c.clientHeight-55;
+ if(scopeDragging.type==='trigger'){
+  $('tekTriggerPos').value=clamp(Math.round((px-L)/W*100/5)*5,10,90);
+  $('tekTriggerPosValue').textContent=val('tekTriggerPos')+' %';
+  invalidateTekSweep();
+ }else{
+  $('ch'+scopeDragging.ch+'Position').value=clamp(Math.round((4-8*(py-top)/H)*10)/10,-3.8,3.8);
+ }
+ drawVirtualBench();e.preventDefault();
+});
+for(const eventName of ['pointerup','pointercancel','lostpointercapture'])$('tekChart').addEventListener(eventName,()=>{scopeDragging=null;});
+function drawTek(){
+ const {x,w,h}=canvasSetup('tekChart');const L=54,R=14,top=20,B=35,W=w-L-R,H=h-top-B;
+ const base=val('tekBase')/1000,total=base*10;
+ const now=performance.now(),sweepDuration=val('tekSweepRate');
+ if(!tekMouseZoom && tekSweep.start===null&&!tekSweep.waiting)startTekSweep();
+ if(!tekMouseZoom && tekSweep.waiting && now-tekSweep.began>300){tekSweep.waiting=false;startTekSweep();}
+ if(!tekMouseZoom && tekSweep.start!==null && tekHold===null && !tekSweep.completed){
+   tekSweep.progress=Math.min(1,(now-tekSweep.began)/sweepDuration);
+   if(tekSweep.progress>=1){if(tekSweep.single){tekSweep.completed=true;tekHold=t;$('tekFreeze').textContent='▶ Reprendre';}else{startTekSweep();}}
+ }
+ const start=tekMouseZoom?tekMouseZoom.start:(tekSweep.start===null?0:tekSweep.start);
+ const visibleTotal=tekMouseZoom?(tekMouseZoom.end-tekMouseZoom.start):total;
+ const end=start+visibleTotal;
+ const progress=tekMouseZoom?1:(tekSweep.start===null?0:tekSweep.progress);
+ x.fillStyle='#081522';x.fillRect(0,0,w,h);x.strokeStyle='#26465b';x.lineWidth=1;x.font='11px Consolas,monospace';x.fillStyle='#91a9bd';
+ for(let i=0;i<=10;i++){const xx=L+i*W/10;x.beginPath();x.moveTo(xx,top);x.lineTo(xx,top+H);x.stroke();const relative=tekMouseZoom?(start+i*visibleTotal/10-tekMouseZoom.reference):(i/10-val('tekTriggerPos')/100)*total;const magnitude=total>=10?relative.toFixed(1)+' s':(relative*1000).toFixed(total<.1?1:0)+' ms';x.fillText(magnitude,Math.max(3,Math.min(w-64,xx-20)),h-12);}
+ for(let i=0;i<=8;i++){const yy=top+i*H/8;x.beginPath();x.moveTo(L,yy);x.lineTo(L+W,yy);x.stroke();}
+ x.fillStyle='#9eb5c6';x.fillText('t − trigger',4,h-24);
+ // Marqueur de déclenchement sur l'axe supérieur : position ajustable au pointeur.
+ const triggerX=L+W*val('tekTriggerPos')/100;
+ x.fillStyle='#ffab52';x.beginPath();x.moveTo(triggerX-8,top-14);x.lineTo(triggerX+8,top-14);x.lineTo(triggerX,top-2);x.closePath();x.fill();
+ x.fillStyle='#ffab52';x.fillText('T',triggerX-3,top-17);
+ x.save();x.strokeStyle='#ffab5280';x.setLineDash([3,5]);x.beginPath();x.moveTo(triggerX,top);x.lineTo(triggerX,top+H);x.stroke();x.restore();
+ for(let ch=1;ch<=4;ch++){
+  if(channelSignal(ch)==='none')continue;
+  const origin=top+H/2-H*val('ch'+ch+'Position')/8;
+  x.fillStyle=chColors[ch-1];x.beginPath();x.moveTo(L-2,origin);x.lineTo(L-15,origin-9);x.lineTo(L-15,origin+9);x.closePath();x.fill();
+  x.font='bold 11px Consolas';x.fillText(String(ch),L-27,origin+4);
+ }
+
+ x.save();x.beginPath();x.rect(L,top,W,H);x.clip();
+ const samplesPerPeriod=16;
+ // À faible base de temps, résolution temporelle suffisante pour afficher les sinus sans repliement.
+ // À grande base de temps, enveloppes min/max par pixel, sans fabriquer de fausses basses fréquences.
+ const detail=visibleTotal<=1.2;
+ for(let ch=1;ch<=4;ch++){
+  const sig=channelSignal(ch);if(sig==='none')continue;
+  const div=Math.max(.01,val('ch'+ch+'Scale'));const pos=val('ch'+ch+'Position');
+  const center=v=>top+H/2-H*(pos+v/div)/8;
+  x.strokeStyle=chColors[ch-1];x.lineWidth=1.55;
+  if(detail){
+   const n=Math.min(12000,Math.max(1600,Math.ceil(visibleTotal*50*samplesPerPeriod)));
+   x.beginPath();let connected=false;
+   for(let k=0;k<=n;k++){
+    const tt=start+visibleTotal*k/n,v=atTime(sig,tt);if(v===null){connected=false;continue;}
+    const px=L+k*W/n,py=center(v);if(connected)x.lineTo(px,py);else x.moveTo(px,py);connected=true;
+   }x.stroke();
+  }else{
+   const ncols=Math.ceil(W);
+   // Waveform acquisition is a full-period ON/OFF history, not a 50 Hz sampled waveform.
+   for(let col=0;col<ncols;col++){
+    const a=start+visibleTotal*col/ncols,b=start+visibleTotal*(col+1)/ncols;
+    if(b<=0||a>t)continue;
+    let lo=Infinity,hi=-Infinity;
+    if(sig==='gate'){
+      const c0=Math.max(0,Math.floor(a/dt)),c1=Math.min(Math.ceil(b/dt),waveStartCycle+wave.length);
+      for(let ci=c0;ci<c1;ci++){const v=wave[ci-waveStartCycle];if(v===undefined)continue;lo=Math.min(lo,v);hi=Math.max(hi,v);}
+    }else if(sig==='source'){
+      // Une portion couvrant >= une période du réseau contient les crêtes ±325 V.
+      if(b-a>=.02){lo=-230*Math.SQRT2;hi=-lo;}
+      else for(let k=0;k<=16;k++){const v=atTime(sig,Math.min(t,Math.max(0,a+(b-a)*k/16)));if(v!==null){lo=Math.min(lo,v);hi=Math.max(hi,v);}}
+    }else{
+      const c0=Math.max(0,Math.floor(a/dt)),c1=Math.min(Math.ceil(b/dt),waveStartCycle+wave.length);
+      for(let ci=c0;ci<c1;ci++){
+       const on=wave[ci-waveStartCycle];if(on===undefined)continue;
+       const active=sig==='switch'?!on:!!on;
+       if(!active){lo=Math.min(lo,0);hi=Math.max(hi,0);continue;}
+       const peak=(sig==='lineI'||sig==='loadI')?Math.sqrt(2)*Math.max(0,val('power'))/230:230*Math.SQRT2;
+       lo=Math.min(lo,-peak);hi=Math.max(hi,peak);
+      }
+    }
+    if(lo===Infinity)continue;
+    const px=L+(col+.5)*W/ncols;
+    x.beginPath();x.moveTo(px,center(lo));x.lineTo(px,center(hi));x.stroke();
+   }
+  }
+ }
+ x.restore();
+ // La trame entière est maintenue visible; seul le curseur de lecture balaie de gauche vers la droite.
+ x.strokeStyle='#d5dfed';x.lineWidth=1;x.beginPath();x.moveTo(L+W*progress,top);x.lineTo(L+W*progress,top+H);x.stroke();
+ $('scopeRun').textContent=tekMouseZoom?'ZOOM':tekSweep.waiting?'WAIT':tekHold===null?'RUN →':'STOP';
+ $('tekInfo').textContent=fmt(visibleTotal*100,3)+' ms/div · 10 divisions · 8 divisions · '+(tekSweep.waiting?'attente du déclenchement':tekHold===null?'trace conservée · curseur gauche → droite : '+Math.round(progress*100)+' %':'image figée')+' · déclenchement '+val('tekTriggerPos')+' % · temps de référence '+fmt(end,2)+' s'+(visibleTotal>1.2?' · enveloppes min/max':'');
+ for(let ch=1;ch<=4;ch++){const sig=channelSignal(ch),unit=units(sig);$('channel'+ch).querySelector('label[for="ch'+ch+'Scale"]').textContent='Sensibilité : '+unit+'/div';}
+}
+function drawEnergy(){
+ const {x,w,h}=canvasSetup('energyChart');const maxX=Math.max(5,t/60*1.02);
+ const maxY=Math.max(1,energyWh*1.15);const sc=scaffold(x,w,h,0,maxY,maxX,v=>fmt(v,maxY<5?2:0)+' Wh');
+ const pts=traces.filter(a=>Number.isFinite(a.energy));
+ if(pts.length)pathLine(x,pts,d=>sc.mapX(d.t),d=>sc.mapY(d.energy),'#f0d06a');
+ $('energyTotal').textContent=fmt(energyWh,2)+' Wh';
+ $('energyHeatup').textContent=atCrossWh!==null?fmt(atCrossWh,2)+' Wh':'—';
+ $('powerGlobal').textContent=t>0?fmt(energyWh*3600/Math.max(.001,t-resetEnergyAt),0)+' W':'—';
+ $('powerStable').textContent=firstReached!==null&&t>firstReached&&atCrossWh!==null?fmt((energyWh-atCrossWh)*3600/(t-firstReached),0)+' W':'—';
+}
+let meterReady=false, meterLastConfig=null, meterEnergyView=0;
+function checkMeterSetup(){
+ const fields=['meterNetwork','meterFreq','meterClamp','meterVRange','meterFunction'];
+ if(fields.some(id=>!$(id).value))return 'Choisir tous les paramètres de configuration.';
+ if($('meterNetwork').value!=='1P2W')return 'Le montage est monophasé 2 fils (1P2W).';
+ if($('meterFreq').value!=='50')return 'Le réseau est à 50 Hz.';
+ if(Number($('meterVRange').value)<230)return 'Calibre tension insuffisant pour 230 V.';
+ const nominalI=Math.max(0,val('power'))/230;
+ if(Number($('meterClamp').value)<nominalI)return 'Calibre courant insuffisant pour '+fmt(nominalI,2)+' A.';
+ return '';
+}
+function drawMeter(){
+ const connectedV=$('meterVoltage').value,connectedI=$('meterCurrent').value;
+ const wired=connectedV!=='none'&&connectedI!=='none';
+ const sampling=$('meterAcquire').value==='run';
+ const enabled=meterReady&&wired&&sampling;
+ // Résultats de mesures RMS établis sur une fenêtre entière de modulation ; plus de confusion entre conduction et mesure instantanée.
+ const recent=Math.min(wave.length,Math.max(1,Math.round(Math.max(2,val('window'))/dt)));
+ let count=0;for(let j=wave.length-recent;j<wave.length;j++)count+=wave[j];
+ const a=recent?count/recent:0,un=230,In=Math.max(0,val('power'))/230;
+ const U=enabled?(connectedV==='source'?un:un*Math.sqrt(a)):NaN;
+ const I=enabled?In*Math.sqrt(a):NaN;
+ const P=enabled?Math.max(0,val('power'))*a:NaN;
+ const S=enabled?U*I:NaN;
+ const pf=enabled&&S>1e-9?Math.min(1,P/S):NaN;
+ const ff=(n,d=1)=>Number.isFinite(n)?fmt(n,d):'—';
+ $('mU').textContent=ff(U,1)+' V';$('mI').textContent=ff(I,2)+' A';$('mP').textContent=ff(P,0)+' W';$('mS').textContent=ff(S,0)+' VA';
+ $('mQ').textContent=enabled?'0 var':'— var';$('mPF').textContent=ff(pf,3);$('mDPF').textContent=enabled&&a>0?'1,000':'—';
+ $('mE').textContent=enabled?ff(Math.max(0,energyWh-meterEnergyView),2)+' Wh':'— Wh';
+ $('mEkWh').textContent=enabled?ff(Math.max(0,energyWh-meterEnergyView)/1000,4)+' kWh':'— kWh';
+ $('mAlpha').textContent=ff(enabled?a*100:NaN,1)+' %';
+ let status='';
+ if(!wired)status='1/4 — Raccorder les cordons de tension et la pince de courant sur le schéma.';
+ else if(!meterReady)status='2/4 — Régler le réseau, la fréquence, la pince et le calibre puis cliquer VALIDER.';
+ else if(!sampling)status='3/4 — Raccordements et réglages validés. Choisir Acquisition → MARCHE.';
+ else if(!running&&t===0)status='4/4 — Analyseur prêt. Cliquer ▶ Démarrer pour alimenter le four.';
+ else status='MESURE ACTIVE — '+(connectedV==='source'?'U réseau':'U charge')+' et '+((connectedI==='lineI'||connectedI==='loadI')?'I ligne = I charge':'courant')+'.';
+ $('meterHelp').textContent=status;
+ $('meterScreenHeader').textContent=enabled?'1P2W · 50 Hz · '+($('meterFunction').value==='energy'?'ÉNERGIE':'PUISSANCES'):'8230 · '+(wired?'RÉGLAGES / ACQUISITION':'CORDONS NON RACCORDÉS');
+ $('meterReadings').classList.toggle('meter-unready',!enabled);
+}
+function drawVirtualBench(){drawTek();drawMeter();}
+function detectFirstPeak(){
+ const sp=val('setpoint');const crossing=traces.findIndex(z=>z.T>=sp);if(crossing<0)return null;
+ // First local maximum after crossing, once temperature has dropped by 0.10 °C.
+ let high=traces[crossing], highIndex=crossing, confirmed=false;
+ for(let i=crossing+1;i<traces.length;i++){
+   if(traces[i].T>high.T){high=traces[i];highIndex=i;}
+   if(i>highIndex && high.T-traces[i].T>=0.10){confirmed=true;break;}
+ }
+ return {high,crossing,confirmed};
+}
+function refreshFirstPeak(){
+ const first=detectFirstPeak();const el=$('firstOvershootValue');const metrics=$('peakMetrics');
+ if(!first){el.textContent='Premier pic : consigne non atteinte';metrics.textContent='Premier dépassement : en attente de la consigne';return;}
+ const amount=first.high.T-val('setpoint');const text='Premier pic '+(first.confirmed?'':'(en cours) ') + fmt(first.high.T,1)+' °C — dépassement '+fmt(amount,1)+' °C';
+ el.textContent=text;metrics.textContent=text+' • t = '+fmt(first.high.t,1)+' min';
+}
+$('zoomFirstOvershoot').addEventListener('click',()=>{
+ const sp=val('setpoint');const k=traces.findIndex(z=>z.T>=sp);
+ if(k<0){$('firstOvershootValue').textContent='Le four n’a pas encore atteint la consigne';return;}
+ const c=traces[k].t;chartZoom.temp={x0:Math.max(0,c-14),x1:Math.min(Math.max(t/60,c+20),c+35),y0:sp-18,y1:sp+30};drawAll();
+});
+window.addEventListener('resize',drawVirtualBench);
+
+// V10 : sélection rectangulaire / zoom des graphiques, et zoom temporel à la souris.
+function renderZoomXTicks(ctx,s,z){
+  ctx.save();ctx.fillStyle='#0b1424';ctx.fillRect(s.L,s.top+s.H+3,s.W,26);
+  ctx.font='11px Arial';ctx.fillStyle='#b5c7dc';ctx.textAlign='center';
+  for(let i=0;i<=5;i++){let xx=s.L+s.W*i/5;ctx.fillText(fmt(z.x0+(z.x1-z.x0)*i/5,1),xx,s.top+s.H+18);}ctx.restore();
+}
+function graphBounds(kind){
+ const c=$(kind==='temp'?'tempChart':'powerChart'),w=c.clientWidth,h=c.clientHeight;
+ // Les marges suivent le gabarit graphique commun.
+ return {c,L:55,top:14,W:w-69,H:h-42};
+}
+for(const kind of ['temp','power']){
+ const c=$(kind==='temp'?'tempChart':'powerChart');
+ c.addEventListener('pointerdown',e=>{
+  const r=c.getBoundingClientRect(),g=graphBounds(kind),px=e.clientX-r.left,py=e.clientY-r.top;
+  if(px<g.L||px>g.L+g.W||py<g.top||py>g.top+g.H)return;
+  zoomDrag={kind,x0:px,y0:py,x1:px,y1:py};c.setPointerCapture(e.pointerId);
+ });
+ c.addEventListener('pointermove',e=>{
+  if(!zoomDrag||zoomDrag.kind!==kind)return;
+  const r=c.getBoundingClientRect();zoomDrag.x1=e.clientX-r.left;zoomDrag.y1=e.clientY-r.top;
+  drawAll();const ctx=c.getContext('2d'),z=zoomDrag;
+  ctx.save();ctx.setTransform(window.devicePixelRatio||1,0,0,window.devicePixelRatio||1,0,0);
+  ctx.fillStyle='#76bbff2a';ctx.strokeStyle='#75bbff';ctx.fillRect(Math.min(z.x0,z.x1),Math.min(z.y0,z.y1),Math.abs(z.x1-z.x0),Math.abs(z.y1-z.y0));
+  ctx.strokeRect(Math.min(z.x0,z.x1),Math.min(z.y0,z.y1),Math.abs(z.x1-z.x0),Math.abs(z.y1-z.y0));ctx.restore();
+ });
+ c.addEventListener('pointerup',e=>{
+  if(!zoomDrag||zoomDrag.kind!==kind)return;
+  const z=zoomDrag,g=graphBounds(kind);zoomDrag=null;
+  if(Math.abs(z.x1-z.x0)<10||Math.abs(z.y1-z.y0)<10){drawAll();return;}
+  const prior=chartZoom[kind],x0=prior?prior.x0:0,x1=prior?prior.x1:Math.max(5,t/60*1.02);
+  const autoMin=Math.min(val('ambient')-10,val('setpoint')-15,...traces.map(a=>Math.min(a.T,a.pv)));
+  const autoMax=Math.max(val('setpoint')+30,T+15,...traces.map(a=>Math.max(a.T,a.pv)));
+  const scale=$('tempScale').value,center=val('tempCenter');
+  const ymin=prior?prior.y0:kind==='power'?0:scale==='auto'?Math.floor(autoMin/20)*20:center-Number(scale)/2;
+  const ymax=prior?prior.y1:kind==='power'?100:scale==='auto'?Math.ceil(autoMax/20)*20:center+Number(scale)/2;
+  const a=clamp((Math.min(z.x0,z.x1)-g.L)/g.W,0,1),b=clamp((Math.max(z.x0,z.x1)-g.L)/g.W,0,1);
+  const c1=clamp((Math.min(z.y0,z.y1)-g.top)/g.H,0,1),d=clamp((Math.max(z.y0,z.y1)-g.top)/g.H,0,1);
+  chartZoom[kind]={x0:x0+a*(x1-x0),x1:x0+b*(x1-x0),y0:ymax-d*(ymax-ymin),y1:ymax-c1*(ymax-ymin)};drawAll();
+ });
+ c.addEventListener('dblclick',()=>{chartZoom[kind]=null;drawAll();});
+ c.addEventListener('pointercancel',()=>{zoomDrag=null;drawAll();});
+}
+let tekSelection=null, tekMouseZoom=null;
+$('tekChart').addEventListener('pointerdown',e=>{
+ if(scopeDragging)return;
+ const c=$('tekChart'),r=c.getBoundingClientRect(),px=e.clientX-r.left,py=e.clientY-r.top;
+ const L=54,top=20,W=c.clientWidth-68,H=c.clientHeight-55;
+ if(px>=L+6&&px<=L+W-6&&py>top+20&&py<top+H-5){tekSelection={startX:px,endX:px};c.setPointerCapture(e.pointerId);}
+});
+$('tekChart').addEventListener('pointermove',e=>{
+ if(!tekSelection||scopeDragging)return;
+ const c=$('tekChart'),r=c.getBoundingClientRect(),px=e.clientX-r.left;
+ tekSelection.endX=clamp(px,54,c.clientWidth-14);drawTek();
+ const ctx=c.getContext('2d'),a=tekSelection;
+ ctx.save();ctx.setTransform(window.devicePixelRatio||1,0,0,window.devicePixelRatio||1,0,0);ctx.fillStyle='#76bbff32';ctx.strokeStyle='#76bbff';ctx.fillRect(Math.min(a.startX,a.endX),20,Math.abs(a.endX-a.startX),c.clientHeight-55);ctx.strokeRect(Math.min(a.startX,a.endX),20,Math.abs(a.endX-a.startX),c.clientHeight-55);ctx.restore();
+});
+$('tekChart').addEventListener('pointerup',()=>{
+ if(!tekSelection)return;
+ const z=tekSelection;tekSelection=null;
+ const width=$('tekChart').clientWidth-68;
+ const a=Math.max(0,Math.min(1,(Math.min(z.startX,z.endX)-54)/width));
+ const b=Math.max(0,Math.min(1,(Math.max(z.startX,z.endX)-54)/width));
+ if(b-a<.025){drawTek();return;}
+ const oldStart=tekMouseZoom?tekMouseZoom.start:(tekSweep.start===null?0:tekSweep.start);
+ const oldSpan=tekMouseZoom?(tekMouseZoom.end-tekMouseZoom.start):val('tekBase')/1000*10;
+ const reference=tekMouseZoom?tekMouseZoom.reference:oldStart+oldSpan*val('tekTriggerPos')/100;
+ tekMouseZoom={start:oldStart+oldSpan*a,end:oldStart+oldSpan*b,reference};
+ drawTek();
+});
+$('tekChart').addEventListener('pointercancel',()=>{tekSelection=null;drawTek();});
+$('tekChart').addEventListener('wheel',e=>{
+ const c=$('tekChart'),r=c.getBoundingClientRect(),px=e.clientX-r.left,L=54,W=c.clientWidth-68;
+ if(px<L||px>L+W)return;
+ e.preventDefault();
+ const start=tekMouseZoom?tekMouseZoom.start:(tekSweep.start===null?0:tekSweep.start);
+ const span=tekMouseZoom?tekMouseZoom.end-tekMouseZoom.start:val('tekBase')/1000*10;
+ const fraction=(px-L)/W,anchor=start+span*fraction;
+ const factor=e.deltaY<0?.75:1.3333333333;
+ const newSpan=Math.max(.0005,Math.min(3000,span*factor));
+ const reference=tekMouseZoom?tekMouseZoom.reference:start+span*val('tekTriggerPos')/100;
+ tekMouseZoom={start:anchor-newSpan*fraction,end:anchor+newSpan*(1-fraction),reference};
+ drawTek();
+},{passive:false});
+$('tekChart').addEventListener('dblclick',()=>{tekMouseZoom=null;invalidateTekSweep();drawTek();});
+showProbeStatus();drawVirtualBench();
+setInterval(()=>{if(tekHold===null||tekSweep.waiting)drawTek();},50);
+
+
+// V11 : mallette d'instruments, raccordements par l'étudiant et mise en service du 8230.
+let benchTool=null;
+const benchButtons=['toolScope1','toolScope2','toolScope3','toolScope4','toolMeterV','toolMeterI','toolErase'];
+function selectBenchTool(tool){benchTool=benchTool===tool?null:tool;for(const id of benchButtons)$(id).classList.toggle('selected-tool',id===benchTool);$('wireInstructions').textContent=benchTool?({toolScope1:'CH1 : cliquer U réseau, U charge, U gradateur ou commande',toolScope2:'CH2 : choisir une mesure de tension',toolScope3:'CH3 : choisir une pince de courant I ligne ou I charge',toolScope4:'CH4 : choisir le signal de commande ou une tension',toolMeterV:'C.A 8230 : cliquer sur U réseau ou U charge',toolMeterI:'C.A 8230 : cliquer sur I ligne ou I charge',toolErase:'Débrancher : cliquer sur le point utilisé par une sonde'}[benchTool]):'Sélectionne un instrument, puis clique sur un point de mesure.';}
+for(const id of benchButtons)$(id).addEventListener('click',()=>selectBenchTool(id));
+// Capture phase : intercept before legacy CH binding, which otherwise requires Arm CHn.
+for(const pin of document.querySelectorAll('.probe-pin'))pin.addEventListener('click',ev=>{
+ if(!benchTool)return;
+ ev.stopImmediatePropagation();
+ const point=pin.dataset.point,amp=point==='lineI'||point==='loadI';
+ if(benchTool==='toolErase'){
+  for(let i=1;i<=4;i++)if($('ch'+i+'Signal').value===point)$('ch'+i+'Signal').value='none';
+  if($('meterVoltage').value===point)$('meterVoltage').value='none';
+  if($('meterCurrent').value===point)$('meterCurrent').value='none';
+ }else if(benchTool==='toolMeterV'||benchTool==='toolMeterI'){
+  if(benchTool==='toolMeterV'&&(point==='source'||point==='load'))$('meterVoltage').value=point;
+  else if(benchTool==='toolMeterI'&&amp)$('meterCurrent').value=point;
+  else {$('wireInstructions').textContent='Mauvais branchement : '+(benchTool==='toolMeterV'?'les cordons U mesurent une tension.':'la pince I se place autour d’un conducteur.');return;}
+ }else{
+  const index=Number(benchTool.at(-1));
+  if(index===3&&!amp){$('wireInstructions').textContent='CH3 utilise ici une pince ampèremétrique : choisir I ligne ou I charge.';return;}
+  if(index!==3&&amp){$('wireInstructions').textContent='Cette voie dispose d’une sonde de tension. Utiliser la pince CH3 pour le courant.';return;}
+  $('ch'+index+'Signal').value=point;
+ }
+ showProbeStatus();drawVirtualBench();
+ $('wireInstructions').textContent='Raccordement effectué : '+probeName(point)+'. Sélectionner un autre instrument ou un point.';
+},true);
+$('meterConfigure').addEventListener('click',()=>{
+ const err=checkMeterSetup();meterReady=!err;
+ meterLastConfig=meterReady?['meterNetwork','meterFreq','meterClamp','meterVRange'].map(id=>$(id).value).join('|'):null;
+ $('meterConfigState').textContent=err||'Configuration validée. Raccorder U et I puis mettre Acquisition sur MARCHE.';
+ $('meterConfigState').style.color=err?'#9b2626':'#17643c';drawMeter();
+});
+for(const id of ['meterNetwork','meterFreq','meterClamp','meterVRange'])$(id).addEventListener('change',()=>{meterReady=false;$('meterConfigState').textContent='Configuration modifiée : revalider les paramètres.';drawMeter();});
+for(const id of ['meterFunction','meterAcquire','meterVoltage','meterCurrent'])$(id).addEventListener('change',drawMeter);
+$('meterEnergyReset').addEventListener('click',()=>{meterEnergyView=energyWh;drawMeter();});
+for(let i=1;i<=4;i++)$('ch'+i+'Signal').value='none';
+$('meterVoltage').value='none';$('meterCurrent').value='none';
+$('meterEnergyReset').textContent='RAZ compteur affiché du C.A 8230';
+$('coolingFan').addEventListener('change',()=>{const mode=$('coolingFan').value;$('fanState').textContent=mode==='cooling'?'Ventilateur actif : résistance hors tension, refroidissement accéléré':mode==='disturbance'?'Ventilateur actif : perturbation thermique, régulation et chauffe maintenues':'Ventilateur arrêté : chauffe autorisée';drawVirtualBench();});
+showProbeStatus();drawVirtualBench();
+
+// Scénarios d'apprentissage : les paramètres restent entièrement modifiables.
+function applyPreset(which){
+ const configs={
+  soft:{mode:'pi',pb:100,ti:1500,sensor:4,heaterCapacity:7000,capacity:18000,transfer:24,loss:10,hyst:2,window:2,power:3000},
+  overshoot:{mode:'pi',pb:20,ti:150,sensor:45,heaterCapacity:12000,capacity:18000,transfer:24,loss:10,hyst:2,window:2,power:3000},
+  torSoft:{mode:'tor',pb:60,ti:500,sensor:5,heaterCapacity:7000,capacity:18000,transfer:24,loss:10,hyst:1,window:2,power:3000},
+  tor:{mode:'tor',pb:60,ti:500,sensor:45,heaterCapacity:12000,capacity:18000,transfer:24,loss:10,hyst:5,window:2,power:3000},
+  torStrong:{mode:'tor',pb:60,ti:500,sensor:90,heaterCapacity:12000,capacity:18000,transfer:24,loss:10,hyst:8,window:2,power:3000}
+ };
+ const cfg=configs[which];for(const [key,value] of Object.entries(cfg))$(key).value=value;
+ $('presetExplanation').textContent={soft:'PI doux : Pb=100 °C, Ti=1500 s, capteur=4 s, inertie éléments=7000 J/K.',overshoot:'PI plus agressif : Pb=20 °C, Ti=150 s, capteur=45 s, inertie éléments=12000 J/K. Comparer la première excursion aux suivantes.',torSoft:'TOR modéré : hystérésis 1 °C, capteur 5 s, capacité éléments 7000 J/K.',tor:'TOR marqué : hystérésis 5 °C, capteur 45 s, capacité éléments 12000 J/K.',torStrong:'TOR très marqué : hystérésis 8 °C, capteur 90 s, capacité éléments 12000 J/K.'}[which]+' Simulation remise à zéro.';
+ reset();
+}
+$('presetPiSoft').addEventListener('click',()=>applyPreset('soft'));
+$('presetPiOvershoot').addEventListener('click',()=>applyPreset('overshoot'));
+$('presetTor').addEventListener('click',()=>applyPreset('tor'));
+$('presetTorSoft').addEventListener('click',()=>applyPreset('torSoft'));
+$('presetTorStrong').addEventListener('click',()=>applyPreset('torStrong'));
+</script></body></html>
